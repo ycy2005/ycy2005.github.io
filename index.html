@@ -147,6 +147,93 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/05/09/cpp%E5%8F%8B%E5%85%83%E7%9B%AE%E7%9A%84%E8%BF%B7%E6%80%9D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/geyou.jpg">
+      <meta itemprop="name" content="叶潮洋">
+      <meta itemprop="description" content="博客可能有点用处，但是博客有点用处不太可能">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="阿叶的梧桐观">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/05/09/cpp%E5%8F%8B%E5%85%83%E7%9B%AE%E7%9A%84%E8%BF%B7%E6%80%9D/" class="post-title-link" itemprop="url">cpp友元目的迷思</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-05-09 21:21:53 / 修改时间：21:42:09" itemprop="dateCreated datePublished" datetime="2026-05-09T21:21:53+08:00">2026-05-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/" itemprop="url" rel="index"><span itemprop="name">C++</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/%E5%85%A5%E9%97%A8/" itemprop="url" rel="index"><span itemprop="name">入门</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C/%E5%85%A5%E9%97%A8/%E9%9A%8F%E6%83%B3/" itemprop="url" rel="index"><span itemprop="name">随想</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="对C-中友元态度的迷思"><a href="#对C-中友元态度的迷思" class="headerlink" title="对C++中友元态度的迷思"></a>对C++中友元态度的迷思</h1><p>老实说友元到底是不是封装的破坏者，这个问题我也是困扰过一段时间，后来想想其实抛开个人的不合理使用（都用C++了那不合理的使用就是改自己考虑清楚自己兜底），它并不应该被视作对封装的破坏。</p>
+<h2 id="最常见用途"><a href="#最常见用途" class="headerlink" title="最常见用途"></a>最常见用途</h2><p>最常见的用途其实表面上根本称不上是封装之类的思考，就是一个为类提供非成员接口。实际coding中，基本就是 <code>operator&lt;&lt;</code>保证流式输出，以及某些二元运算符重载，然后就是相对少见的单元测试的辅助类以及内部管理类（比如 <code>Manager</code> 访问 <code>Worker</code> 的私有状态等）。从这个视角看，单说语法，友元“破坏”封装；但为了支持某些必须放在类外的操作，<code>friend</code> 反而<strong>维持了封装的完整性</strong>。</p>
+<h2 id="强化封装"><a href="#强化封装" class="headerlink" title="强化封装"></a>强化封装</h2><p>但是最终我还是觉得友元不是破坏而是<strong>强化了封装</strong>。套个简单的例子，A类有一个私有变量 <code>m</code>，原本只有B类需要访问它。如果提供 <code>getM</code>&#x2F;<code>setM</code>，反而让所有其他类都能看到这个接口，暴露了不该暴露的信息。此时<strong>把B设为友元，直接去掉公共接口</strong>，对外部其他类来说 <code>m</code> 就消失了，封装性更好。</p>
+<p>从定义与原始目的上讲，<strong>封装的核心不是全部私有，而是最小暴露</strong>。当A只需要信任一个特定类B时，友元能够精确控制访问范围，避免产生本不需要的公共接口。空泛一点说，这在设计成对出现的类（如<code>Node</code>和<code>List</code>）、工厂模式、或者需要高性能访问内部表示的场景中很有价值。当然，前提是A和B确实由同一个人或同一模块维护，不然滥用友元确实会引入紧密耦合，导致一些，呃，不太妙的后果。</p>
+<h2 id="Dark-Side"><a href="#Dark-Side" class="headerlink" title="Dark Side?"></a>Dark Side?</h2><p>模板加友元，确实可以访问任意类的private成员。滥用模板和友元可能绕过访问控制，甚至实现“黑客式”的单例破坏，不过这就是属于UB了。技术上，C++标准不允许通过模板特化随意访问任意类的私有成员，除非那个类主动声明了对应的模板函数&#x2F;类为友元。这种瞎搞通常依赖于未定义行为（如指针偏移、<code>aligned_storage</code>等技巧）。实际coding中，这种写法既不合法也不可移植，属于是会被pre-commit或者CI打回的东西。只能说，友元的信任范围需要严格限定，如果滥用模板元编程和显式实例化，确实可能写出看起来能侵入私有成员的代码，但那不static，没有什么好说的。</p>
+<hr>
+<h2 id="概括"><a href="#概括" class="headerlink" title="概括"></a>概括</h2><ol>
+<li><strong>友元不是反封装工具，而是细粒度控制访问边界</strong>。批评友元破坏封装，往往是因为自己把它和将所有内部都暴露这种想法画等号，但真正破坏封装的是不加控制的 <code>public</code> 接口或把所有成员都弄成 <code>protected</code>，这属于前面的技术债或者菜狗的操作问题，和它无关。</li>
+<li><strong>友元的信任关系应该是对等&#x2F;模块内的</strong>。如果两个类的耦合已经紧密到需要互相访问私有成员的地步了，显式声明友元比绕道公共接口更honest，也更利于后期维护。</li>
+<li><strong>滥用友元的问题在于让类之间的关系隐式扩散</strong>。如果一个类有十几个友元，那它几乎等于间接公开了所有私有成员，此时才是真正伤害了封装，但我觉得这不该怪友元，有一说一。</li>
+<li><strong>现代C++中，友元似乎确实越来越少</strong>，因为像<code>Visitor</code>这样的设计模式、<code>private</code>继承、<code>Key</code>模板等技巧可以替代部分友元场景。但在需要典型如流运算符的对称接口、单元测试桩、高性能容器实现时，友元仍然很好用。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/31/HCI/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2584,18 +2671,18 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
